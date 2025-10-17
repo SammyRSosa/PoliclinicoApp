@@ -1,0 +1,11 @@
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\bin\Debug\net8.0\Policlínico.Domain.deps.json
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\bin\Debug\net8.0\Policlínico.Domain.dll
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\bin\Debug\net8.0\Policlínico.Domain.pdb
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\obj\Debug\net8.0\Policlínico.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\obj\Debug\net8.0\Policlínico.Domain.AssemblyInfoInputs.cache
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\obj\Debug\net8.0\Policlínico.Domain.AssemblyInfo.cs
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\obj\Debug\net8.0\Policlínico.Domain.csproj.CoreCompileInputs.cache
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\obj\Debug\net8.0\Policlínico.Domain.dll
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\obj\Debug\net8.0\refint\Policlínico.Domain.dll
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\obj\Debug\net8.0\Policlínico.Domain.pdb
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\obj\Debug\net8.0\ref\Policlínico.Domain.dll

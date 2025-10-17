@@ -1,0 +1,15 @@
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\bin\Debug\net8.0\Policlínico.Application.deps.json
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\bin\Debug\net8.0\Policlínico.Application.dll
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\bin\Debug\net8.0\Policlínico.Application.pdb
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\bin\Debug\net8.0\Policlínico.Domain.dll
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\bin\Debug\net8.0\Policlínico.Domain.pdb
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\Policlínico.Application.csproj.AssemblyReference.cache
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\Policlínico.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\Policlínico.Application.AssemblyInfoInputs.cache
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\Policlínico.Application.AssemblyInfo.cs
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\Policlínico.Application.csproj.CoreCompileInputs.cache
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\Policl_n.B61D863F.Up2Date
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\Policlínico.Application.dll
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\refint\Policlínico.Application.dll
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\Policlínico.Application.pdb
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\ref\Policlínico.Application.dll

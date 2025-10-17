@@ -1,0 +1,6 @@
+@Policlínico.API_HostAddress = http://localhost:5028
+
+GET {{Policlínico.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
