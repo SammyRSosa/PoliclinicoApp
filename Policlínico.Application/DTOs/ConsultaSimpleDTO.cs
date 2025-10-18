@@ -1,6 +1,6 @@
 namespace Policlínico.Application.DTOs
 {
-    public class ConsultaSimpleDTO
+    public class ConsultaSimpleDto
     {
         public int IdConsulta { get; set; }
         public DateTime FechaConsulta { get; set; }

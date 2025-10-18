@@ -17,3 +17,4 @@ C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Infrastructure\obj\Debug\net
 C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Infrastructure\obj\Debug\net8.0\Policlínico.Infrastructure.pdb
 C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Infrastructure\obj\Debug\net8.0\Policlínico.Infrastructure.genruntimeconfig.cache
 C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Infrastructure\obj\Debug\net8.0\ref\Policlínico.Infrastructure.dll
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Infrastructure\obj\Debug\net8.0\Policlínico.Infrastructure.sourcelink.json

@@ -9,3 +9,4 @@ C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\obj\Debug\net8.0\Poli
 C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\obj\Debug\net8.0\refint\Policlínico.Domain.dll
 C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\obj\Debug\net8.0\Policlínico.Domain.pdb
 C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\obj\Debug\net8.0\ref\Policlínico.Domain.dll
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Domain\obj\Debug\net8.0\Policlínico.Domain.sourcelink.json

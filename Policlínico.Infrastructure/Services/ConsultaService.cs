@@ -1,10 +1,13 @@
-using Policlínico.Application.DTOs;
-using Policlínico.Domain.Entities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Policlínico.Infrastructure.Data;
+using Policlínico.Application.DTOs;
 using Policlínico.Application.Interfaces;
-
+using Policlínico.Domain.Entities;
+using Policlínico.Infrastructure.Data;
 
 namespace Policlínico.Infrastructure.Services
 {
@@ -19,212 +22,257 @@ namespace Policlínico.Infrastructure.Services
             _mapper = mapper;
         }
 
-        public async Task<ConsultaReadDTO> CreateAsync(ConsultaCreateDTO dto)
+        public async Task<ConsultaReadDto> CreateAsync(ConsultaCreateDto dto)
         {
             // Validaciones básicas
-            var deptAtiende = await _context.Departamentos.FindAsync(dto.DepartamentoAtiendeId);
-            if (deptAtiende == null) throw new InvalidOperationException("Departamento que atiende no existe.");
+            if (dto == null) throw new ArgumentNullException(nameof(dto));
 
-            if (dto.PuestoMedicoId.HasValue)
+            var paciente = await _context.Pacientes.FindAsync(dto.PacienteId);
+            if (paciente == null) throw new InvalidOperationException("Paciente no existe.");
+
+            var medicoPrincipal = await _context.Trabajadores.FindAsync(dto.DoctorPrincipalId);
+            if (medicoPrincipal == null) throw new InvalidOperationException("Médico principal no existe.");
+            if (!string.Equals(medicoPrincipal.Cargo, "Doctor", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("El médico principal debe tener cargo 'Doctor'.");
+
+            // Si es Programada requiere departamento y puesto
+            if (string.Equals(dto.TipoConsulta, "Programada Externa", StringComparison.OrdinalIgnoreCase))
             {
-                var puesto = await _context.PuestosMedicos.FindAsync(dto.PuestoMedicoId.Value);
-                if (puesto == null) throw new InvalidOperationException("Puesto médico origen no existe.");
+                if (!dto.PuestoMedicoId.HasValue)
+                    throw new InvalidOperationException("Para consultas programadas debe indicar DepartamentoId y PuestoMedicoId.");
+
+                var depExists = await _context.Departamentos.AnyAsync(d => d.IdDepartamento == dto.DepartamentoAtiendeId);
+                if (!depExists) throw new InvalidOperationException("Departamento no existe.");
+
+                var puestoExists = await _context.PuestosMedicos.AnyAsync(p => p.IdPuesto == dto.PuestoMedicoId.Value);
+                if (!puestoExists) throw new InvalidOperationException("Puesto médico no existe.");
             }
 
-            // Validar doctor principal existe y es doctor
-            var doctorPrincipal = await _context.Trabajadores.FindAsync(dto.DoctorPrincipalId);
-            if (doctorPrincipal == null) throw new InvalidOperationException("Doctor principal no existe.");
-            if (!string.Equals(doctorPrincipal.Cargo, "Doctor", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("Doctor principal no tiene cargo 'Doctor'.");
+            if (string.Equals(dto.TipoConsulta, "Programada Departamento", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!dto.PuestoMedicoId.HasValue)
+                    throw new InvalidOperationException("Para consultas programadas debe indicar DepartamentoId y PuestoMedicoId.");
 
-            // Reglas de negocio sobre fecha y diagnóstico
-            var now = DateTime.UtcNow;
+                var depExists = await _context.Departamentos.AnyAsync(d => d.IdDepartamento == dto.DepartamentoAtiendeId);
+                if (!depExists) throw new InvalidOperationException("Departamento no existe.");
+
+                var dep2Exists = await _context.Departamentos.AnyAsync(d => d.IdDepartamento == dto.PuestoMedicoId);
+                if (!dep2Exists) throw new InvalidOperationException("Puesto médico no existe.");
+            }
+
+
+            // Si el usuario quiso añadir diagnóstico en creación se valida la consistencia:
+            // - No se puede añadir diagnóstico si la consulta queda en Pendiente o EnCurso
+            // - Si contiene diagnóstico la consulta debe quedar Finalizada
+            // Decidimos el estado ahora basado en fecha y diagnostico después se valida.
+
+            var nowDate = DateTime.UtcNow.Date;
+            var fecha = dto.FechaConsulta.Date;
+
             string estado;
             if (!string.IsNullOrWhiteSpace(dto.Diagnostico))
             {
-                // No se permite diagnóstico si fecha futura
-                if (dto.FechaConsulta > now)
-                    throw new InvalidOperationException("No se puede agregar diagnóstico a una consulta con fecha futura.");
+                // si tiene diagnóstico, la fecha no puede ser futura.
+                if (dto.FechaConsulta.Date > nowDate)
+                    throw new InvalidOperationException("No puede añadir diagnóstico a una consulta con fecha futura (Pendiente).");
+
                 estado = "Finalizada";
             }
             else
             {
-                if (dto.FechaConsulta > now) estado = "Pendiente";
-                else estado = "EnCurso";
+                if (dto.FechaConsulta.Date > nowDate) estado = "Pendiente";
+                else if (dto.FechaConsulta.Date < nowDate) estado = "EnCurso";
+                else estado = "EnCurso"; // misma fecha -> en curso
             }
 
-            var consulta = _mapper.Map<Consulta>(dto);
-            consulta.Estado = estado;
-            consulta.TipoConsulta = string.IsNullOrWhiteSpace(dto.TipoConsulta) ? "Guardia" : dto.TipoConsulta;
+            // Validar doctores participantes (si hay) — si consulta tiene departamento, los doctores deben pertenecer a ese departamento (asignación activa)
+            var doctores = new List<Trabajador>();
+            if (dto.DoctoresParticipantesIds != null && dto.DoctoresParticipantesIds.Count > 0)
+            {
+                foreach (var docId in dto.DoctoresParticipantesIds.Distinct())
+                {
+                    var doc = await _context.Trabajadores.FindAsync(docId);
+                    if (doc == null) throw new InvalidOperationException($"Doctor participante (id={docId}) no existe.");
+                    if (!string.Equals(doc.Cargo, "Doctor", StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException($"Trabajador id={docId} no tiene cargo 'Doctor'.");
 
-            // Guardar consulta
+                    // si es programada y hay departamento, validate that doctor is assigned currently to that department
+                    if (dto.DepartamentoAtiendeId > 0)
+                    {
+                        var assigned = await _context.Asignaciones
+                            .AnyAsync(a => a.TrabajadorId == docId && a.DepartamentoId == dto.DepartamentoAtiendeId && a.FechaFin == null);
+                        if (!assigned)
+                            throw new InvalidOperationException($"Doctor id={docId} no está asignado actualmente al departamento {dto.DepartamentoAtiendeId}.");
+                    }
+
+                    doctores.Add(doc);
+                }
+            }
+
+            // Crear entidad
+            var consulta = new Consulta
+            {
+                Tipo = dto.TipoConsulta,
+                FechaConsulta = dto.FechaConsulta,
+                Diagnostico = dto.Diagnostico,
+                PacienteId = dto.PacienteId,
+                MedicoPrincipalId = dto.DoctorPrincipalId,
+                DepartamentoId = dto.DepartamentoAtiendeId,
+                PuestoMedicoId = dto.PuestoMedicoId,
+                Estado = estado,
+                FechaCreacion = DateTime.UtcNow
+            };
+
+            // Attach doctores (many-to-many)
+            foreach (var d in doctores)
+                consulta.Doctores.Add(d);
+
             _context.Consultas.Add(consulta);
             await _context.SaveChangesAsync();
 
-            // Manejar participantes: asegurarse de que existan y sean doctores
-            var participantesIds = dto.DoctoresParticipantesIds ?? new List<int>();
-            // asegurar que el principal esté en la lista
-            if (!participantesIds.Contains(dto.DoctorPrincipalId))
-                participantesIds.Add(dto.DoctorPrincipalId);
+            // Mapear y devolver
+            // incluir nombres de paciente y medico principal
+            await _context.Entry(consulta).Reference(c => c.Paciente).LoadAsync();
+            await _context.Entry(consulta).Reference(c => c.MedicoPrincipal).LoadAsync();
+            if (consulta.DepartamentoId > 0) await _context.Entry(consulta).Reference(c => c.Departamento).LoadAsync();
+            await _context.Entry(consulta).Collection(c => c.Doctores).LoadAsync();
 
-            var consultaTrabajadores = new List<ConsultaTrabajador>();
-            foreach (var tId in participantesIds.Distinct())
-            {
-                var trabajador = await _context.Trabajadores.FindAsync(tId);
-                if (trabajador == null) continue; // ignorar IDs inválidos
-                if (!string.Equals(trabajador.Cargo, "Doctor", StringComparison.OrdinalIgnoreCase)) 
-                    continue; // ignorar si no es doctor
-
-                consultaTrabajadores.Add(new ConsultaTrabajador
-                {
-                    ConsultaId = consulta.IdConsulta,
-                    TrabajadorId = trabajador.IdTrabajador,
-                    EsPrincipal = (tId == dto.DoctorPrincipalId)
-                });
-            }
-
-            if (consultaTrabajadores.Any())
-            {
-                _context.ConsultaTrabajadores.AddRange(consultaTrabajadores);
-                await _context.SaveChangesAsync();
-            }
-
-            // Si viene diagnostico, lo seteo
-            if (!string.IsNullOrWhiteSpace(dto.Diagnostico))
-            {
-                consulta.Diagnostico = dto.Diagnostico;
-                consulta.Estado = "Finalizada";
-                await _context.SaveChangesAsync();
-            }
-
-            // recargar con navegación
-            await _context.Entry(consulta).Reference(c => c.DoctorPrincipal).LoadAsync();
-            await _context.Entry(consulta).Collection(c => c.ConsultaTrabajadores).LoadAsync();
-            foreach (var ct in consulta.ConsultaTrabajadores ?? Enumerable.Empty<ConsultaTrabajador>())
-                await _context.Entry(ct).Reference(x => x.Trabajador).LoadAsync();
-
-            return _mapper.Map<ConsultaReadDTO>(consulta);
+            var dtoRead = _mapper.Map<ConsultaReadDto>(consulta);
+            return dtoRead;
         }
 
-        public async Task<ConsultaReadDTO?> GetByIdAsync(int id)
+        public async Task<IEnumerable<ConsultaReadDto>> GetAllAsync()
+        {
+            var list = await _context.Consultas
+                .Include(c => c.Paciente)
+                .Include(c => c.MedicoPrincipal)
+                .Include(c => c.Departamento)
+                .Include(c => c.Doctores)
+                .ToListAsync();
+
+            return _mapper.Map<List<ConsultaReadDto>>(list);
+        }
+
+        public async Task<ConsultaReadDto?> GetByIdAsync(int id)
         {
             var consulta = await _context.Consultas
-                .Include(c => c.DoctorPrincipal)
-                .Include(c => c.ConsultaTrabajadores)
-                    .ThenInclude(ct => ct.Trabajador)
+                .Include(c => c.Paciente)
+                .Include(c => c.MedicoPrincipal)
+                .Include(c => c.Departamento)
+                .Include(c => c.Doctores)
                 .FirstOrDefaultAsync(c => c.IdConsulta == id);
 
             if (consulta == null) return null;
-            return _mapper.Map<ConsultaReadDTO>(consulta);
+            return _mapper.Map<ConsultaReadDto>(consulta);
         }
 
-        public async Task<List<ConsultaSimpleDTO>> GetAllSimpleAsync()
-        {
-            var consultas = await _context.Consultas
-                .OrderByDescending(c => c.FechaConsulta)
-                .ToListAsync();
-
-            return _mapper.Map<List<ConsultaSimpleDTO>>(consultas);
-        }
-
-        public async Task<ConsultaReadDTO> UpdateAsync(int id, ConsultaUpdateDTO dto)
+        public async Task<ConsultaReadDto> UpdateAsync(int id, ConsultaUpdateDto dto)
         {
             var consulta = await _context.Consultas
-                .Include(c => c.ConsultaTrabajadores)
+                .Include(c => c.Doctores)
                 .FirstOrDefaultAsync(c => c.IdConsulta == id);
 
             if (consulta == null) throw new InvalidOperationException("Consulta no encontrada.");
 
-            var now = DateTime.UtcNow;
+            // Cambiar fecha (afecta estado)
+            consulta.FechaConsulta = (DateTime)dto.FechaConsulta;
 
-            // Si intentan poner diagnóstico y la fecha es futura => error
-            if (!string.IsNullOrWhiteSpace(dto.Diagnostico) && consulta.FechaConsulta > now)
-                throw new InvalidOperationException("No se puede agregar diagnóstico a una consulta con fecha futura.");
+            var nowDate = DateTime.UtcNow.Date;
+            var fecha = dto.FechaConsulta;
 
-            // Mapear campos permitidos
-            if (dto.FechaConsulta.HasValue)
-                consulta.FechaConsulta = dto.FechaConsulta.Value;
-
+            // Si el DTO trae diagnóstico intenta aplicarlo -> usar AddDiagnosticoAsync para reglas específicas
             if (!string.IsNullOrWhiteSpace(dto.Diagnostico))
             {
+                // adding diagnostico implies finalizada (regla); date must not be in future.
+                if (dto.FechaConsulta > nowDate)
+                    throw new InvalidOperationException("No puede añadir diagnóstico a una consulta con fecha futura (Pendiente).");
+
                 consulta.Diagnostico = dto.Diagnostico;
                 consulta.Estado = "Finalizada";
             }
-
-            if (!string.IsNullOrWhiteSpace(dto.Estado))
-                consulta.Estado = dto.Estado;
-
-            // Cambiar doctor principal si se pide
-            if (dto.DoctorPrincipalId.HasValue)
+            else
             {
-                var doc = await _context.Trabajadores.FindAsync(dto.DoctorPrincipalId.Value);
-                if (doc == null) throw new InvalidOperationException("Nuevo doctor principal no existe.");
-                if (!string.Equals(doc.Cargo, "Doctor", StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("Nuevo doctor principal no tiene cargo 'Doctor'.");
-                consulta.DoctorPrincipalId = dto.DoctorPrincipalId.Value;
-
-                // Asegurar que sea participante
-                if (!(consulta.ConsultaTrabajadores?.Any(ct => ct.TrabajadorId == consulta.DoctorPrincipalId) ?? false))
+                // recalcular estado por fecha y diagnostico actual
+                if (!string.IsNullOrWhiteSpace(consulta.Diagnostico))
                 {
-                    var ct = new ConsultaTrabajador
-                    {
-                        ConsultaId = consulta.IdConsulta,
-                        TrabajadorId = consulta.DoctorPrincipalId,
-                        EsPrincipal = true
-                    };
-                    _context.ConsultaTrabajadores.Add(ct);
+                    consulta.Estado = "Finalizada";
+                }
+                else
+                {
+                    if (fecha > nowDate) consulta.Estado = "Pendiente";
+                    else consulta.Estado = "EnCurso";
                 }
             }
 
-            // Actualizar lista de participantes: reemplazo simple
+            // actualizar doctores participantes si se proporcionan
             if (dto.DoctoresParticipantesIds != null)
             {
-                // eliminar actuales no en la nueva lista
-                var actuales = consulta.ConsultaTrabajadores ?? new List<ConsultaTrabajador>();
-                var nuevosIds = dto.DoctoresParticipantesIds.Distinct().ToList();
-
-                foreach (var actual in actuales.ToList())
+                // limpiar y volver a agregar
+                consulta.Doctores.Clear();
+                foreach (var docId in dto.DoctoresParticipantesIds.Distinct())
                 {
-                    if (!nuevosIds.Contains(actual.TrabajadorId))
-                        _context.ConsultaTrabajadores.Remove(actual);
-                }
-
-                // agregar los que faltan
-                foreach (var nuevoId in nuevosIds)
-                {
-                    if (!actuales.Any(a => a.TrabajadorId == nuevoId))
+                    var doc = await _context.Trabajadores.FindAsync(docId);
+                    if (doc == null) throw new InvalidOperationException($"Doctor id={docId} no existe.");
+                    if (!string.Equals(doc.Cargo, "Doctor", StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException($"Trabajador id={docId} no tiene cargo 'Doctor'.");
+                    // si consulta tiene departamento validar asignacion
+                    if (consulta.DepartamentoId > 0)
                     {
-                        var trabajador = await _context.Trabajadores.FindAsync(nuevoId);
-                        if (trabajador == null) continue;
-                        if (!string.Equals(trabajador.Cargo, "Doctor", StringComparison.OrdinalIgnoreCase)) continue;
-
-                        _context.ConsultaTrabajadores.Add(new ConsultaTrabajador
-                        {
-                            ConsultaId = consulta.IdConsulta,
-                            TrabajadorId = nuevoId,
-                            EsPrincipal = (nuevoId == consulta.DoctorPrincipalId)
-                        });
+                        var assigned = await _context.Asignaciones
+                            .AnyAsync(a => a.TrabajadorId == docId && a.DepartamentoId == consulta.DepartamentoId && a.FechaFin == null);
+                        if (!assigned)
+                            throw new InvalidOperationException($"Doctor id={docId} no está asignado al departamento {consulta.DepartamentoId}.");
                     }
+                    consulta.Doctores.Add(doc);
                 }
             }
 
             await _context.SaveChangesAsync();
 
-            await _context.Entry(consulta).Reference(c => c.DoctorPrincipal).LoadAsync();
-            await _context.Entry(consulta).Collection(c => c.ConsultaTrabajadores).LoadAsync();
-            foreach (var ct in consulta.ConsultaTrabajadores ?? Enumerable.Empty<ConsultaTrabajador>())
-                await _context.Entry(ct).Reference(x => x.Trabajador).LoadAsync();
+            // reload relations
+            await _context.Entry(consulta).Reference(c => c.Paciente).LoadAsync();
+            await _context.Entry(consulta).Reference(c => c.MedicoPrincipal).LoadAsync();
+            await _context.Entry(consulta).Collection(c => c.Doctores).LoadAsync();
+            if (consulta.DepartamentoId > 0) await _context.Entry(consulta).Reference(c => c.Departamento).LoadAsync();
 
-            return _mapper.Map<ConsultaReadDTO>(consulta);
+            return _mapper.Map<ConsultaReadDto>(consulta);
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task<ConsultaReadDto> AddDiagnosticoAsync(int id, string diagnostico, int medicoId)
         {
-            var consulta = await _context.Consultas.FindAsync(id);
-            if (consulta == null) return;
+            var consulta = await _context.Consultas
+                .Include(c => c.Doctores)
+                .FirstOrDefaultAsync(c => c.IdConsulta == id);
 
-            _context.Consultas.Remove(consulta);
+            if (consulta == null) throw new InvalidOperationException("Consulta no encontrada.");
+
+            // Validaciones:
+            // - If consulta is Pendiente or EnCurso -> cannot add diagnostico
+            // - If consulta FechaConsulta in future -> Pendiente -> cannot
+            var nowDate = DateTime.UtcNow.Date;
+            if (consulta.FechaConsulta.Date > nowDate) throw new InvalidOperationException("No se puede añadir diagnóstico a una consulta pendiente (fecha futura).");
+            if (consulta.Estado == "Pendiente" || consulta.Estado == "EnCurso")
+                throw new InvalidOperationException("No se puede añadir diagnóstico mientras la consulta esté pendiente o en curso.");
+
+            // medicoId debe existir y ser doctor
+            var medico = await _context.Trabajadores.FindAsync(medicoId);
+            if (medico == null) throw new InvalidOperationException("Médico que firma el diagnóstico no existe.");
+            if (!string.Equals(medico.Cargo, "Doctor", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Solo un doctor puede firmar el diagnóstico.");
+
+            // If consulta already has diagnostico, overwrite? we allow overwrite — alternativa: throw.
+            consulta.Diagnostico = diagnostico;
+            consulta.Estado = "Finalizada";
+
             await _context.SaveChangesAsync();
+
+            // reload relations
+            await _context.Entry(consulta).Reference(c => c.Paciente).LoadAsync();
+            await _context.Entry(consulta).Reference(c => c.MedicoPrincipal).LoadAsync();
+            await _context.Entry(consulta).Collection(c => c.Doctores).LoadAsync();
+            if (consulta.DepartamentoId > 0) await _context.Entry(consulta).Reference(c => c.Departamento).LoadAsync();
+
+            return _mapper.Map<ConsultaReadDto>(consulta);
         }
     }
 }

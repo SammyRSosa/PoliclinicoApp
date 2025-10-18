@@ -1,6 +1,6 @@
 namespace Policlínico.Application.DTOs
 {
-    public class ConsultaUpdateDTO
+    public class ConsultaUpdateDto
     {
         public DateTime? FechaConsulta { get; set; }
         public string? Diagnostico { get; set; } // permitir actualizar (con reglas)

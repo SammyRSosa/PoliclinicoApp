@@ -1,3 +1,4 @@
+using Policlínico.Application.DTOs;
 namespace Policlínico.API.DTOs
 {
     public class DepartamentoDto

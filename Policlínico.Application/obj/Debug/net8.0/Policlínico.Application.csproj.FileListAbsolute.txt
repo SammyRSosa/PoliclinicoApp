@@ -13,3 +13,4 @@ C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0
 C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\refint\Policlínico.Application.dll
 C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\Policlínico.Application.pdb
 C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\ref\Policlínico.Application.dll
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.Application\obj\Debug\net8.0\Policlínico.Application.sourcelink.json

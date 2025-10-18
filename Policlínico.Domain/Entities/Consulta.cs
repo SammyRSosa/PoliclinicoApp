@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,57 +13,52 @@ namespace Policlínico.Domain.Entities
         public int IdConsulta { get; set; }
 
         [Required]
+        [MaxLength(30)]
         [Column("tipo")]
-        [MaxLength(50)]
-        public string TipoConsulta { get; set; } = "Guardia"; // "Programada" o "Guardia"
+        // "Programada Departamento" | "CuerpoDeGuardia" | "Programada Externa"
+        public string Tipo { get; set; } = string.Empty;
 
-        // Origen: puede ser un departamento interno (nullable) o un puesto medico externo (nullable)
-        [Column("departamento_origen_id")]
-        public int? DepartamentoOrigenId { get; set; }
-
-        [ForeignKey(nameof(DepartamentoOrigenId))]
-        public Departamento? DepartamentoOrigen { get; set; }
-
-        [Column("puesto_medico_id")]
-        public int? PuestoMedicoId { get; set; }
-
-        [ForeignKey(nameof(PuestoMedicoId))]
-        public PuestoMedico? PuestoMedico { get; set; }
-
-        // Departamento que atiende (destino)
-        [Required]
-        [Column("departamento_atiende_id")]
-        public int DepartamentoAtiendeId { get; set; }
-        [ForeignKey(nameof(DepartamentoAtiendeId))]
-        public Departamento DepartamentoAtiende { get; set; } = null!;
-
-        // Paciente
-        [Required]
-        [Column("paciente_id")]
-        public int PacienteId { get; set; }
-
-        // Doctor principal (trabajador con cargo "Doctor")
-        [Column("doctor_principal_id")]
-        public int DoctorPrincipalId { get; set; }
-        [ForeignKey(nameof(DoctorPrincipalId))]
-        public Trabajador? DoctorPrincipal { get; set; }
-
-        // Fecha de la consulta
         [Required]
         [Column("fecha_consulta")]
         public DateTime FechaConsulta { get; set; }
 
-        // Diagnostico: resumen escrito por el doctor principal (nullable hasta que se guarde)
-        [Column("diagnostico")]
-        public string? Diagnostico { get; set; }
-
-        // Estado: "Pendiente", "EnCurso", "Finalizada"
         [Required]
-        [Column("estado")]
         [MaxLength(20)]
+        [Column("estado")]
+        // "Pendiente" | "EnCurso" | "Finalizada"
         public string Estado { get; set; } = "Pendiente";
 
-        // Relación many-to-many a Trabajadores (doctores que participaron)
-        public ICollection<ConsultaTrabajador>? ConsultaTrabajadores { get; set; }
+        [Column("diagnostico")]
+        public string? Diagnostico { get; set; } // nota: campo simple según lo pediste
+
+        // Relaciones
+        [Required]
+        [Column("paciente_id")]
+        public int PacienteId { get; set; }
+        public Paciente? Paciente { get; set; }
+
+        [Required]
+        [Column("medico_principal_id")]
+        public int MedicoPrincipalId { get; set; }
+        public Trabajador? MedicoPrincipal { get; set; }
+
+        // Solo obligatorio para Programada
+        [Column("departamento_id")]
+        public int DepartamentoId { get; set; }
+        public Departamento? Departamento { get; set; }
+
+        // Solo obligatorio para Programada (puesto médico externo o interno)
+        [Column("puesto_medico_id")]
+        public int? PuestoMedicoId { get; set; }
+        public Departamento? PuestoMedico { get; set; }
+
+        // Doctores participantes (many-to-many). EF Core creará la tabla intermedia si es bidireccional;
+        // si no la tiene, puedes crear explicitamente un entity join. Aquí mantenemos explicit collection.
+        public ICollection<Trabajador> Doctores { get; set; } = new List<Trabajador>();
+
+        [Column("fecha_creacion")]
+        public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+
+        public ICollection<ConsultaTrabajador>? AsignacionesConsulta { get; set; }
     }
 }

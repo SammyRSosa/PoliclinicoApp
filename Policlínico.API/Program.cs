@@ -23,6 +23,12 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.WriteIndented = true;
     });
 
+builder.Services.AddScoped<ISolicitudMedicamentoService, SolicitudMedicamentoService>();
+builder.Services.AddScoped<IEntregaMedicamentoService, EntregaMedicamentoService>();
+builder.Services.AddScoped<IPedidoMedicamentoService, PedidoMedicamentoService>();
+builder.Services.AddScoped<IEntregaConsultaService, EntregaAConsultaService>();
+
+
 // 🔹 Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -42,4 +48,12 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<PoliclínicoDbContext>();
+    await PoliclinicoDbContextSeed.SeedAsync(context);
+}
+
 app.Run();

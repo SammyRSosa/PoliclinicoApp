@@ -142,3 +142,4 @@ C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.API\obj\Debug\net8.0\refint\
 C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.API\obj\Debug\net8.0\Policlínico.API.pdb
 C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.API\obj\Debug\net8.0\Policlínico.API.genruntimeconfig.cache
 C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.API\obj\Debug\net8.0\ref\Policlínico.API.dll
+C:\Users\Samy\Documents\PoliclinicoApp\Policlínico.API\obj\Debug\net8.0\Policlínico.API.sourcelink.json

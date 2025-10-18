@@ -1,9 +1,8 @@
 namespace Policlínico.Application.DTOs
 {
-    public class ConsultaCreateDTO
+    public class ConsultaCreateDto
     {
         public string TipoConsulta { get; set; } = "Guardia"; // "Programada" o "Guardia"
-        public int? DepartamentoOrigenId { get; set; } // opcional
         public int? PuestoMedicoId { get; set; } // opcional
         public int DepartamentoAtiendeId { get; set; } // requerido
         public int PacienteId { get; set; } // requerido

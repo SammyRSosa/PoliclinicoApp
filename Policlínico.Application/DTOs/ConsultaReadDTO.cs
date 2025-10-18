@@ -1,6 +1,6 @@
 namespace Policlínico.Application.DTOs
 {
-    public class ConsultaReadDTO
+    public class ConsultaReadDto
     {
         public int IdConsulta { get; set; }
         public string TipoConsulta { get; set; } = string.Empty;

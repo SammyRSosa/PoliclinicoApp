@@ -1,4 +1,3 @@
-using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Policlínico.Application.DTOs;
 using Policlínico.Application.Interfaces;
@@ -10,18 +9,16 @@ namespace Policlínico.API.Controllers
     public class ConsultaController : ControllerBase
     {
         private readonly IConsultaService _service;
-        private readonly IMapper _mapper;
 
-        public ConsultaController(IConsultaService service, IMapper mapper)
+        public ConsultaController(IConsultaService service)
         {
             _service = service;
-            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var list = await _service.GetAllSimpleAsync();
+            var list = await _service.GetAllAsync();
             return Ok(list);
         }
 
@@ -34,7 +31,7 @@ namespace Policlínico.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ConsultaCreateDTO dto)
+        public async Task<IActionResult> Create([FromBody] ConsultaCreateDto dto)
         {
             try
             {
@@ -48,7 +45,7 @@ namespace Policlínico.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] ConsultaUpdateDTO dto)
+        public async Task<IActionResult> Update(int id, [FromBody] ConsultaUpdateDto dto)
         {
             try
             {
@@ -61,11 +58,25 @@ namespace Policlínico.API.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        // Añadir diagnostico (endpoint separado)
+        [HttpPost("{id}/diagnostico")]
+        public async Task<IActionResult> AddDiagnostico(int id, [FromBody] AddDiagnosticoDto dto)
         {
-            await _service.DeleteAsync(id);
-            return NoContent();
+            try
+            {
+                var updated = await _service.AddDiagnosticoAsync(id, dto.Diagnostico, dto.MedicoId);
+                return Ok(updated);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        public class AddDiagnosticoDto
+        {
+            public string Diagnostico { get; set; } = string.Empty;
+            public int MedicoId { get; set; }
         }
     }
 }

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Policlínico.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6769f6c12dc9f6ea394224a70e90e89c7e43b246")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0e57df794a31b36fb81bc3befc32de2cfe80b937")]
 [assembly: System.Reflection.AssemblyProductAttribute("Policlínico.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Policlínico.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
