@@ -74,7 +74,9 @@ namespace Policlínico.API.Controllers
                 .CountAsync(a => a.TrabajadorId == asignacion.TrabajadorId && a.FechaFin == null) == 1;
 
             if (unicoActivo)
-                return BadRequest("No se puede finalizar esta asignación: el trabajador debe pertenecer a al menos un departamento.");
+                asignacion.Trabajador.EstadoLaboral = "Inactivo";
+                _context.Trabajadores.Update(asignacion.Trabajador);
+                await _context.SaveChangesAsync();
 
             asignacion.FechaFin = DateTime.UtcNow;
             await _context.SaveChangesAsync();

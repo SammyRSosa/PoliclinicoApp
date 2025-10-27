@@ -22,7 +22,7 @@ namespace Policlínico.API.Controllers
         {
             var stocks = await _context.Stocks
                 .Include(s => s.Departamento)
-                .Include(s => s.Medicamentos)
+                .Include(s => s.StockMedicamentos)
                 .ToListAsync();
 
             return Ok(stocks);
@@ -34,7 +34,7 @@ namespace Policlínico.API.Controllers
         {
             var stock = await _context.Stocks
                 .Include(s => s.Departamento)
-                .Include(s => s.Medicamentos)
+                .Include(s => s.StockMedicamentos)
                 .FirstOrDefaultAsync(s => s.IdStock == id);
 
             if (stock == null)

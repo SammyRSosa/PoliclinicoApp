@@ -13,29 +13,55 @@ namespace Policlínico.API.Profiles
 
 
             CreateMap<Consulta, ConsultaReadDto>()
-                .ForMember(dest => dest.IdConsulta, opt => opt.MapFrom(src => src.IdConsulta))
-                .ForMember(dest => dest.TipoConsulta, opt => opt.MapFrom(src => src.Tipo))
-                .ForMember(dest => dest.FechaConsulta, opt => opt.MapFrom(src => src.FechaConsulta))
-                .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.Estado))
-                .ForMember(dest => dest.Diagnostico, opt => opt.MapFrom(src => src.Diagnostico))
-                .ForMember(dest => dest.PacienteId, opt => opt.MapFrom(src => src.PacienteId))
-                .ForMember(dest => dest.DoctorPrincipalId, opt => opt.MapFrom(src => src.MedicoPrincipalId))
-                .ForMember(dest => dest.DoctorPrincipalNombre, opt => opt.MapFrom(src => src.MedicoPrincipal != null ? src.MedicoPrincipal.Nombre : null))
-                .ForMember(dest => dest.DepartamentoAtiendeId, opt => opt.MapFrom(src => src.DepartamentoId))
-                // .ForMember(dest => dest.PuestoMedicoId, opt => opt.MapFrom(src => src.Departamento != null ? src.Departamento.Nombre : null))
-                .ForMember(dest => dest.DoctoresParticipantes, opt => opt.MapFrom(src =>
-                    src.Doctores != null ? src.Doctores.Select(d => new TrabajadorMiniDto
-                    {
-                        IdTrabajador = d.IdTrabajador,
-                        Nombre = d.Nombre,
-                        Cargo = d.Cargo
-                    }).ToList() : new List<TrabajadorMiniDto>()
-                ));
+                 .ForMember(dest => dest.Departamento, opt => opt.MapFrom(src => src.Departamento != null ? src.Departamento.Nombre : null))
+                 .ForMember(dest => dest.Tipo, opt => opt.MapFrom(src => src.Tipo))
+                 .ForMember(dest => dest.Diagnostico, opt => opt.MapFrom(src => src.Diagnostico))
+                 .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.Estado));
+
+            // Consulta de Emergencia
+            CreateMap<ConsultaEmergencia, ConsultaReadDto>()
+                .IncludeBase<Consulta, ConsultaReadDto>()
+                .ForMember(dest => dest.Paciente, opt => opt.MapFrom(src => src.Paciente != null ? src.Paciente.Nombre : null))
+                .ForMember(dest => dest.MedicoPrincipal, opt => opt.MapFrom(src => src.MedicoPrincipal != null ? src.MedicoPrincipal.Nombre : null))
+                .ForMember(dest => dest.MedicoAtendio, opt => opt.MapFrom(src => src.MedicoAtendio != null ? src.MedicoAtendio.Nombre : null));
+
+            // Consulta Programada
+            CreateMap<ConsultaProgramada, ConsultaReadDto>()
+                .IncludeBase<Consulta, ConsultaReadDto>()
+                .ForMember(dest => dest.Remision, opt => opt.MapFrom(src => src.Remision != null ? $"Remisión #{src.Remision.IdRemision}" : null))
+                .ForMember(dest => dest.MedicoPrincipal, opt => opt.MapFrom(src => src.MedicoPrincipal != null ? src.MedicoPrincipal.Nombre : null))
+                .ForMember(dest => dest.MedicoAtendio, opt => opt.MapFrom(src => src.MedicoAtendio != null ? src.MedicoAtendio.Nombre : null));
+
+            // =====================================================
+            // 📌 REMISIONES
+            // =====================================================
+            CreateMap<Remision, RemisionReadDto>()
+                .ForMember(dest => dest.DepartamentoAtiendeId, opt => opt.MapFrom(src => src.Departamento != null ? src.Departamento.Nombre : null))
+                .ForMember(dest => dest.PacienteId, opt => opt.MapFrom(src => src.Paciente != null ? src.Paciente.Nombre : null));
+
+            CreateMap<RemisionCreateDto, Remision>();
+            CreateMap<RemisionUpdateDto, Remision>();
+
+            // =====================================================
+            // 📌 TRABAJADORES
+            // =====================================================
+            CreateMap<Trabajador, TrabajadorReadDto>()
+                .ForMember(dest => dest.Nombre, opt => opt.MapFrom(src => src.Nombre));
+
+            CreateMap<TrabajadorCreateDto, Trabajador>();
+            CreateMap<TrabajadorUpdateDto, Trabajador>();
+
+            // =====================================================
+            // 📌 DEPARTAMENTOS
+            // =====================================================
+            CreateMap<Departamento, DepartamentoReadDto>();
+            CreateMap<DepartamentoCreateDto, Departamento>();
+            CreateMap<DepartamentoUpdateDto, Departamento>();
 
 
 
 
-            // 🏥 Departamento → DTO completo (lectura)
+            // Departamento → DTO completo (lectura)
             CreateMap<Departamento, DepartamentoReadDto>()
                 .ForMember(dest => dest.JefeNombre,
                     opt => opt.MapFrom(src => src.Jefe != null ? src.Jefe.Nombre : null))
@@ -53,7 +79,7 @@ namespace Policlínico.API.Profiles
                             : new List<TrabajadorMiniDto>()
                     ));
 
-            // 🏥 Departamento → DTO resumido (para respuestas simples)
+            // Departamento → DTO resumido (para respuestas simples)
             CreateMap<Departamento, DepartamentoDto>()
                 .ForMember(dest => dest.JefeNombre,
                     opt => opt.MapFrom(src => src.Jefe != null ? src.Jefe.Nombre : null))
@@ -82,7 +108,7 @@ namespace Policlínico.API.Profiles
             CreateMap<DepartamentoUpdateDto, Departamento>()
                 .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.Estado));
 
-            // 👨‍⚕️ Trabajador → DTO lectura
+            // Trabajador → DTO lectura
             CreateMap<Trabajador, TrabajadorReadDto>()
                 .ForMember(dest => dest.Asignaciones,
                     opt => opt.MapFrom(src =>
@@ -104,7 +130,7 @@ namespace Policlínico.API.Profiles
             CreateMap<TrabajadorUpdateDto, Trabajador>()
                 .ForMember(dest => dest.Asignaciones, opt => opt.Ignore());
 
-            // 🔗 Asignación → DTO
+            // Asignación → DTO
             CreateMap<Asignacion, AsignacionDto>()
                 .ForMember(dest => dest.DepartamentoNombre,
                     opt => opt.MapFrom(src => src.Departamento != null ? src.Departamento.Nombre : string.Empty));
@@ -113,29 +139,11 @@ namespace Policlínico.API.Profiles
             CreateMap<Trabajador, TrabajadorMiniDto>();
 
 
-            // 👇 al final de tu constructor en MappingProfile
+            // al final de tu constructor en MappingProfile
             CreateMap<Departamento, DepartamentoSimpleDto>()
                 .ForMember(dest => dest.JefeNombre,
                     opt => opt.MapFrom(src => src.Jefe != null ? src.Jefe.Nombre : null))
                 .ForMember(dest => dest.Estado, opt => opt.MapFrom(src => src.Estado));
-
-         
-
-            // // ConsultaCreateDTO → Consulta
-            // CreateMap<ConsultaCreateDTO, Consulta>()
-            //     .ForMember(dest => dest.Estado, opt => opt.Ignore()) // estado se calcula en servicio
-            //     .ForMember(dest => dest.ConsultaTrabajadores, opt => opt.Ignore());
-
-            // // ConsultaUpdateDTO → Consulta (mapear solo algunos campos)
-            // CreateMap<ConsultaUpdateDTO, Consulta>()
-            //     .ForMember(dest => dest.Estado, opt => opt.Ignore())
-            //     .ForMember(dest => dest.ConsultaTrabajadores, opt => opt.Ignore());
-
-            // // Consulta → ConsultaSimpleDTO
-            // CreateMap<Consulta, ConsultaSimpleDTO>();
-
-
-
 
         }
     }

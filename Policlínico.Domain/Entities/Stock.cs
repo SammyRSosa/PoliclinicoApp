@@ -17,6 +17,6 @@ namespace Policlínico.Domain.Entities
         [ForeignKey("DepartamentoId")]
         public Departamento? Departamento { get; set; }
 
-        public ICollection<Medicamento>? Medicamentos { get; set; }
+        public ICollection<StockMedicamento>? StockMedicamentos { get; set; }
     }
 }

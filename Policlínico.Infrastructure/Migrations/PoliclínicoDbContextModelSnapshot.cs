@@ -75,77 +75,37 @@ namespace Policlínico.Infrastructure.Migrations
 
                     b.Property<string>("Estado")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                        .HasColumnType("text")
                         .HasColumnName("estado");
 
                     b.Property<DateTime>("FechaConsulta")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("fecha_consulta");
 
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("fecha_creacion");
+                    b.Property<int>("MedicoAtendioId")
+                        .HasColumnType("integer")
+                        .HasColumnName("medico_atendio_id");
 
                     b.Property<int>("MedicoPrincipalId")
                         .HasColumnType("integer")
                         .HasColumnName("medico_principal_id");
 
-                    b.Property<int>("PacienteId")
-                        .HasColumnType("integer")
-                        .HasColumnName("paciente_id");
-
-                    b.Property<int?>("PuestoMedicoId")
-                        .HasColumnType("integer")
-                        .HasColumnName("puesto_medico_id");
-
                     b.Property<string>("Tipo")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasColumnName("tipo");
+                        .HasColumnType("text")
+                        .HasColumnName("tipo_consulta");
 
                     b.HasKey("IdConsulta");
 
                     b.HasIndex("DepartamentoId");
 
+                    b.HasIndex("MedicoAtendioId");
+
                     b.HasIndex("MedicoPrincipalId");
 
-                    b.HasIndex("PacienteId");
-
-                    b.HasIndex("PuestoMedicoId");
-
                     b.ToTable("Consultas");
-                });
 
-            modelBuilder.Entity("Policlínico.Domain.Entities.ConsultaTrabajador", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("ConsultaId")
-                        .HasColumnType("integer")
-                        .HasColumnName("consulta_id");
-
-                    b.Property<bool>("EsPrincipal")
-                        .HasColumnType("boolean")
-                        .HasColumnName("es_principal");
-
-                    b.Property<int>("TrabajadorId")
-                        .HasColumnType("integer")
-                        .HasColumnName("trabajador_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ConsultaId");
-
-                    b.HasIndex("TrabajadorId");
-
-                    b.ToTable("ConsultaTrabajadores");
+                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("Policlínico.Domain.Entities.Departamento", b =>
@@ -178,93 +138,6 @@ namespace Policlínico.Infrastructure.Migrations
                     b.HasIndex("JefeId");
 
                     b.ToTable("Departamentos");
-                });
-
-            modelBuilder.Entity("Policlínico.Domain.Entities.Doctor", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Apellido")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("FechaNacimiento")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Telefono")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Doctores");
-                });
-
-            modelBuilder.Entity("Policlínico.Domain.Entities.EntregaAConsulta", b =>
-                {
-                    b.Property<int>("IdEntregaConsulta")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id_entrega_consulta");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdEntregaConsulta"));
-
-                    b.Property<int>("ConsultaId")
-                        .HasColumnType("integer")
-                        .HasColumnName("consulta_id");
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("estado");
-
-                    b.Property<DateTime>("FechaEntrega")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("fecha_entrega");
-
-                    b.HasKey("IdEntregaConsulta");
-
-                    b.HasIndex("ConsultaId");
-
-                    b.ToTable("EntregasAConsulta");
-                });
-
-            modelBuilder.Entity("Policlínico.Domain.Entities.EntregaAConsultaDetalle", b =>
-                {
-                    b.Property<int>("IdDetalle")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id_detalle");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdDetalle"));
-
-                    b.Property<int>("Cantidad")
-                        .HasColumnType("integer")
-                        .HasColumnName("cantidad");
-
-                    b.Property<int>("EntregaConsultaId")
-                        .HasColumnType("integer")
-                        .HasColumnName("entrega_consulta_id");
-
-                    b.Property<int>("MedicamentoId")
-                        .HasColumnType("integer")
-                        .HasColumnName("medicamento_id");
-
-                    b.HasKey("IdDetalle");
-
-                    b.HasIndex("EntregaConsultaId");
-
-                    b.HasIndex("MedicamentoId");
-
-                    b.ToTable("EntregaAConsultaDetalles");
                 });
 
             modelBuilder.Entity("Policlínico.Domain.Entities.EntregaMedicamento", b =>
@@ -333,33 +206,6 @@ namespace Policlínico.Infrastructure.Migrations
                     b.ToTable("EntregaMedicamentoDetalles");
                 });
 
-            modelBuilder.Entity("Policlínico.Domain.Entities.Inventario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Apellido")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("FechaNacimiento")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Telefono")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Inventarios");
-                });
-
             modelBuilder.Entity("Policlínico.Domain.Entities.Medicamento", b =>
                 {
                     b.Property<int>("Id")
@@ -368,26 +214,15 @@ namespace Policlínico.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Apellido")
+                    b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<DateTime>("FechaNacimiento")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int?>("StockIdStock")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Telefono")
-                        .HasColumnType("text");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("StockIdStock");
 
                     b.ToTable("Medicamentos");
                 });
@@ -435,7 +270,7 @@ namespace Policlínico.Infrastructure.Migrations
                     b.ToTable("Pacientes");
                 });
 
-            modelBuilder.Entity("Policlínico.Domain.Entities.PedidoMedicamento", b =>
+            modelBuilder.Entity("Policlínico.Domain.Entities.PedidoConsulta", b =>
                 {
                     b.Property<int>("IdPedido")
                         .ValueGeneratedOnAdd()
@@ -448,11 +283,9 @@ namespace Policlínico.Infrastructure.Migrations
                         .HasColumnType("integer")
                         .HasColumnName("consulta_id");
 
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("estado");
+                    b.Property<int>("DepartamentoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("departamento_id");
 
                     b.Property<DateTime>("FechaPedido")
                         .HasColumnType("timestamp with time zone")
@@ -462,10 +295,12 @@ namespace Policlínico.Infrastructure.Migrations
 
                     b.HasIndex("ConsultaId");
 
-                    b.ToTable("PedidosMedicamentos");
+                    b.HasIndex("DepartamentoId");
+
+                    b.ToTable("PedidosConsultas");
                 });
 
-            modelBuilder.Entity("Policlínico.Domain.Entities.PedidoMedicamentoDetalle", b =>
+            modelBuilder.Entity("Policlínico.Domain.Entities.PedidoConsultaDetalle", b =>
                 {
                     b.Property<int>("IdDetalle")
                         .ValueGeneratedOnAdd()
@@ -492,21 +327,48 @@ namespace Policlínico.Infrastructure.Migrations
 
                     b.HasIndex("PedidoId");
 
-                    b.ToTable("PedidoMedicamentoDetalles");
+                    b.ToTable("PedidoConsultaDetalles");
                 });
 
-            modelBuilder.Entity("Policlínico.Domain.Entities.PuestoMedico", b =>
+            modelBuilder.Entity("Policlínico.Domain.Entities.Remision", b =>
                 {
-                    b.Property<int>("IdPuesto")
+                    b.Property<int>("IdRemision")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasColumnName("id_puesto");
+                        .HasColumnName("id_remision");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdPuesto"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdRemision"));
 
-                    b.HasKey("IdPuesto");
+                    b.Property<int>("DepartamentoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("departamento_que_atiende_id");
 
-                    b.ToTable("PuestosMedicos", (string)null);
+                    b.Property<DateTime>("FechaConsulta")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_consulta");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("fecha_creacion");
+
+                    b.Property<int>("PacienteId")
+                        .HasColumnType("integer")
+                        .HasColumnName("paciente_id");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("tipo_remision");
+
+                    b.HasKey("IdRemision");
+
+                    b.HasIndex("DepartamentoId");
+
+                    b.HasIndex("PacienteId");
+
+                    b.ToTable("Remisiones");
+
+                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("Policlínico.Domain.Entities.SolicitudMedicamento", b =>
@@ -596,6 +458,36 @@ namespace Policlínico.Infrastructure.Migrations
                     b.ToTable("Stocks");
                 });
 
+            modelBuilder.Entity("Policlínico.Domain.Entities.StockMedicamento", b =>
+                {
+                    b.Property<int>("IdStockMedicamento")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id_stock_medicamento");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdStockMedicamento"));
+
+                    b.Property<int>("CantidadDisponible")
+                        .HasColumnType("integer")
+                        .HasColumnName("cantidad_disponible");
+
+                    b.Property<int>("MedicamentoId")
+                        .HasColumnType("integer")
+                        .HasColumnName("medicamento_id");
+
+                    b.Property<int>("StockId")
+                        .HasColumnType("integer")
+                        .HasColumnName("stock_id");
+
+                    b.HasKey("IdStockMedicamento");
+
+                    b.HasIndex("MedicamentoId");
+
+                    b.HasIndex("StockId");
+
+                    b.ToTable("StockMedicamentos");
+                });
+
             modelBuilder.Entity("Policlínico.Domain.Entities.Trabajador", b =>
                 {
                     b.Property<int>("IdTrabajador")
@@ -611,9 +503,6 @@ namespace Policlínico.Infrastructure.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("cargo");
 
-                    b.Property<int?>("ConsultaIdConsulta")
-                        .HasColumnType("integer");
-
                     b.Property<string>("EstadoLaboral")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -628,9 +517,59 @@ namespace Policlínico.Infrastructure.Migrations
 
                     b.HasKey("IdTrabajador");
 
-                    b.HasIndex("ConsultaIdConsulta");
-
                     b.ToTable("Trabajadores");
+                });
+
+            modelBuilder.Entity("Policlínico.Domain.Entities.ConsultaEmergencia", b =>
+                {
+                    b.HasBaseType("Policlínico.Domain.Entities.Consulta");
+
+                    b.Property<int>("PacienteId")
+                        .HasColumnType("integer")
+                        .HasColumnName("paciente_id");
+
+                    b.HasIndex("PacienteId");
+
+                    b.ToTable("ConsultasEmergencia", (string)null);
+                });
+
+            modelBuilder.Entity("Policlínico.Domain.Entities.ConsultaProgramada", b =>
+                {
+                    b.HasBaseType("Policlínico.Domain.Entities.Consulta");
+
+                    b.Property<int>("RemisionId")
+                        .HasColumnType("integer")
+                        .HasColumnName("remision_id");
+
+                    b.HasIndex("RemisionId");
+
+                    b.ToTable("ConsultasProgramadas", (string)null);
+                });
+
+            modelBuilder.Entity("Policlínico.Domain.Entities.RemisionExterna", b =>
+                {
+                    b.HasBaseType("Policlínico.Domain.Entities.Remision");
+
+                    b.Property<string>("MotivoExterno")
+                        .HasColumnType("text")
+                        .HasColumnName("motivo_externo");
+
+                    b.ToTable("RemisionesExternas", (string)null);
+                });
+
+            modelBuilder.Entity("Policlínico.Domain.Entities.RemisionInterna", b =>
+                {
+                    b.HasBaseType("Policlínico.Domain.Entities.Remision");
+
+                    b.Property<int>("DepartamentoOrigenId")
+                        .HasColumnType("integer")
+                        .HasColumnName("departamento_origen_id");
+
+                    b.Property<string>("MotivoInterno")
+                        .HasColumnType("text")
+                        .HasColumnName("motivo_interno");
+
+                    b.ToTable("RemisionesInternas", (string)null);
                 });
 
             modelBuilder.Entity("Policlínico.Domain.Entities.Asignacion", b =>
@@ -660,48 +599,23 @@ namespace Policlínico.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Policlínico.Domain.Entities.Trabajador", "MedicoAtendio")
+                        .WithMany()
+                        .HasForeignKey("MedicoAtendioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Policlínico.Domain.Entities.Trabajador", "MedicoPrincipal")
                         .WithMany()
                         .HasForeignKey("MedicoPrincipalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Policlínico.Domain.Entities.Paciente", "Paciente")
-                        .WithMany()
-                        .HasForeignKey("PacienteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Policlínico.Domain.Entities.Departamento", "PuestoMedico")
-                        .WithMany()
-                        .HasForeignKey("PuestoMedicoId");
-
                     b.Navigation("Departamento");
 
+                    b.Navigation("MedicoAtendio");
+
                     b.Navigation("MedicoPrincipal");
-
-                    b.Navigation("Paciente");
-
-                    b.Navigation("PuestoMedico");
-                });
-
-            modelBuilder.Entity("Policlínico.Domain.Entities.ConsultaTrabajador", b =>
-                {
-                    b.HasOne("Policlínico.Domain.Entities.Consulta", "Consulta")
-                        .WithMany("AsignacionesConsulta")
-                        .HasForeignKey("ConsultaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Policlínico.Domain.Entities.Trabajador", "Trabajador")
-                        .WithMany("AsignacionesConsulta")
-                        .HasForeignKey("TrabajadorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Consulta");
-
-                    b.Navigation("Trabajador");
                 });
 
             modelBuilder.Entity("Policlínico.Domain.Entities.Departamento", b =>
@@ -712,36 +626,6 @@ namespace Policlínico.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Jefe");
-                });
-
-            modelBuilder.Entity("Policlínico.Domain.Entities.EntregaAConsulta", b =>
-                {
-                    b.HasOne("Policlínico.Domain.Entities.Consulta", "Consulta")
-                        .WithMany()
-                        .HasForeignKey("ConsultaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Consulta");
-                });
-
-            modelBuilder.Entity("Policlínico.Domain.Entities.EntregaAConsultaDetalle", b =>
-                {
-                    b.HasOne("Policlínico.Domain.Entities.EntregaAConsulta", "EntregaConsulta")
-                        .WithMany("Detalles")
-                        .HasForeignKey("EntregaConsultaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Policlínico.Domain.Entities.Medicamento", "Medicamento")
-                        .WithMany()
-                        .HasForeignKey("MedicamentoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EntregaConsulta");
-
-                    b.Navigation("Medicamento");
                 });
 
             modelBuilder.Entity("Policlínico.Domain.Entities.EntregaMedicamento", b =>
@@ -780,14 +664,7 @@ namespace Policlínico.Infrastructure.Migrations
                     b.Navigation("Medicamento");
                 });
 
-            modelBuilder.Entity("Policlínico.Domain.Entities.Medicamento", b =>
-                {
-                    b.HasOne("Policlínico.Domain.Entities.Stock", null)
-                        .WithMany("Medicamentos")
-                        .HasForeignKey("StockIdStock");
-                });
-
-            modelBuilder.Entity("Policlínico.Domain.Entities.PedidoMedicamento", b =>
+            modelBuilder.Entity("Policlínico.Domain.Entities.PedidoConsulta", b =>
                 {
                     b.HasOne("Policlínico.Domain.Entities.Consulta", "Consulta")
                         .WithMany()
@@ -795,10 +672,18 @@ namespace Policlínico.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Policlínico.Domain.Entities.Departamento", "Departamento")
+                        .WithMany()
+                        .HasForeignKey("DepartamentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Consulta");
+
+                    b.Navigation("Departamento");
                 });
 
-            modelBuilder.Entity("Policlínico.Domain.Entities.PedidoMedicamentoDetalle", b =>
+            modelBuilder.Entity("Policlínico.Domain.Entities.PedidoConsultaDetalle", b =>
                 {
                     b.HasOne("Policlínico.Domain.Entities.Medicamento", "Medicamento")
                         .WithMany()
@@ -806,7 +691,7 @@ namespace Policlínico.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Policlínico.Domain.Entities.PedidoMedicamento", "Pedido")
+                    b.HasOne("Policlínico.Domain.Entities.PedidoConsulta", "Pedido")
                         .WithMany("Detalles")
                         .HasForeignKey("PedidoId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -815,6 +700,25 @@ namespace Policlínico.Infrastructure.Migrations
                     b.Navigation("Medicamento");
 
                     b.Navigation("Pedido");
+                });
+
+            modelBuilder.Entity("Policlínico.Domain.Entities.Remision", b =>
+                {
+                    b.HasOne("Policlínico.Domain.Entities.Departamento", "Departamento")
+                        .WithMany()
+                        .HasForeignKey("DepartamentoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Policlínico.Domain.Entities.Paciente", "Paciente")
+                        .WithMany()
+                        .HasForeignKey("PacienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Departamento");
+
+                    b.Navigation("Paciente");
                 });
 
             modelBuilder.Entity("Policlínico.Domain.Entities.SolicitudMedicamento", b =>
@@ -864,18 +768,75 @@ namespace Policlínico.Infrastructure.Migrations
                     b.Navigation("Departamento");
                 });
 
-            modelBuilder.Entity("Policlínico.Domain.Entities.Trabajador", b =>
+            modelBuilder.Entity("Policlínico.Domain.Entities.StockMedicamento", b =>
                 {
-                    b.HasOne("Policlínico.Domain.Entities.Consulta", null)
-                        .WithMany("Doctores")
-                        .HasForeignKey("ConsultaIdConsulta");
+                    b.HasOne("Policlínico.Domain.Entities.Medicamento", "Medicamento")
+                        .WithMany()
+                        .HasForeignKey("MedicamentoId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Policlínico.Domain.Entities.Stock", "Stock")
+                        .WithMany("StockMedicamentos")
+                        .HasForeignKey("StockId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Medicamento");
+
+                    b.Navigation("Stock");
                 });
 
-            modelBuilder.Entity("Policlínico.Domain.Entities.Consulta", b =>
+            modelBuilder.Entity("Policlínico.Domain.Entities.ConsultaEmergencia", b =>
                 {
-                    b.Navigation("AsignacionesConsulta");
+                    b.HasOne("Policlínico.Domain.Entities.Consulta", null)
+                        .WithOne()
+                        .HasForeignKey("Policlínico.Domain.Entities.ConsultaEmergencia", "IdConsulta")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Doctores");
+                    b.HasOne("Policlínico.Domain.Entities.Paciente", "Paciente")
+                        .WithMany()
+                        .HasForeignKey("PacienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Paciente");
+                });
+
+            modelBuilder.Entity("Policlínico.Domain.Entities.ConsultaProgramada", b =>
+                {
+                    b.HasOne("Policlínico.Domain.Entities.Consulta", null)
+                        .WithOne()
+                        .HasForeignKey("Policlínico.Domain.Entities.ConsultaProgramada", "IdConsulta")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Policlínico.Domain.Entities.Remision", "Remision")
+                        .WithMany()
+                        .HasForeignKey("RemisionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Remision");
+                });
+
+            modelBuilder.Entity("Policlínico.Domain.Entities.RemisionExterna", b =>
+                {
+                    b.HasOne("Policlínico.Domain.Entities.Remision", null)
+                        .WithOne()
+                        .HasForeignKey("Policlínico.Domain.Entities.RemisionExterna", "IdRemision")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Policlínico.Domain.Entities.RemisionInterna", b =>
+                {
+                    b.HasOne("Policlínico.Domain.Entities.Remision", null)
+                        .WithOne()
+                        .HasForeignKey("Policlínico.Domain.Entities.RemisionInterna", "IdRemision")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Policlínico.Domain.Entities.Departamento", b =>
@@ -885,17 +846,12 @@ namespace Policlínico.Infrastructure.Migrations
                     b.Navigation("Stock");
                 });
 
-            modelBuilder.Entity("Policlínico.Domain.Entities.EntregaAConsulta", b =>
-                {
-                    b.Navigation("Detalles");
-                });
-
             modelBuilder.Entity("Policlínico.Domain.Entities.EntregaMedicamento", b =>
                 {
                     b.Navigation("Detalles");
                 });
 
-            modelBuilder.Entity("Policlínico.Domain.Entities.PedidoMedicamento", b =>
+            modelBuilder.Entity("Policlínico.Domain.Entities.PedidoConsulta", b =>
                 {
                     b.Navigation("Detalles");
                 });
@@ -907,14 +863,12 @@ namespace Policlínico.Infrastructure.Migrations
 
             modelBuilder.Entity("Policlínico.Domain.Entities.Stock", b =>
                 {
-                    b.Navigation("Medicamentos");
+                    b.Navigation("StockMedicamentos");
                 });
 
             modelBuilder.Entity("Policlínico.Domain.Entities.Trabajador", b =>
                 {
                     b.Navigation("Asignaciones");
-
-                    b.Navigation("AsignacionesConsulta");
                 });
 #pragma warning restore 612, 618
         }

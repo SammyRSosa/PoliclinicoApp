@@ -1,181 +1,240 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Policlínico.Domain.Entities;
 
 namespace Policlínico.Infrastructure.Data
 {
-    public static class PoliclinicoDbContextSeed
+    public static class DbContextSeed
     {
         public static async Task SeedAsync(PoliclínicoDbContext context)
         {
-            if (context.Pacientes.Any()) return; // ya está poblada
+            // 🔹 1. Limpiar las tablas (orden correcto para evitar FK)
+            var truncateSql = @"
+                TRUNCATE TABLE 
+                    ""PedidoConsultaDetalles"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""PedidosConsultas"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""EntregaMedicamentoDetalles"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""EntregasMedicamentos"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""SolicitudMedicamentoDetalles"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""SolicitudesMedicamentos"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""StockMedicamentos"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""Stocks"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""ConsultasEmergencia"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""ConsultasProgramadas"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""Consultas"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""RemisionesExternas"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""RemisionesInternas"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""Remisiones"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""Asignaciones"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""Trabajadores"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""Pacientes"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""Departamentos"" RESTART IDENTITY CASCADE;
+                TRUNCATE TABLE 
+                    ""Medicamentos"" RESTART IDENTITY CASCADE;
+            ";
+            await context.Database.ExecuteSqlRawAsync(truncateSql);
 
-            // === PACIENTES ===
-            var pacientes = new List<Paciente>
-            {
-                new Paciente { Nombre = "Juan Pérez", NumeroIdentidad = "1001", Edad = 23 },
-                new Paciente { Nombre = "María Gómez", NumeroIdentidad = "1002", Edad = 23}
-            };
-            context.Pacientes.AddRange(pacientes);
-
-            // === TRABAJADORES ===
-            var trabajadores = new List<Trabajador>
-            {
-                new Trabajador { Nombre = "Dr. Luis Hernández", Cargo = "Doctor" },
-                new Trabajador { Nombre = "Dra. Ana Morales", Cargo = "Doctor" },
-                new Trabajador { Nombre = "Carlos Díaz", Cargo = "Jefe de Almacén" },
-                new Trabajador { Nombre = "Laura Torres", Cargo = "Enfermera" },
-                new Trabajador { Nombre = "Pedro Ruiz", Cargo = "Doctor" }
-            };
-            context.Trabajadores.AddRange(trabajadores);
-            await context.SaveChangesAsync();
-
-            // === DEPARTAMENTOS ===
-            var dep1 = new Departamento { Nombre = "Emergencias", JefeId = trabajadores[0].IdTrabajador, Estado = "Activo" };
-            var dep2 = new Departamento { Nombre = "Pediatría", JefeId = trabajadores[1].IdTrabajador, Estado = "Activo" };
-            var dep3 = new Departamento { Nombre = "Quemados", JefeId = null, Estado = "Inactivo" };
-            context.Departamentos.AddRange(dep1, dep2, dep3);
-            await context.SaveChangesAsync();
-
-            // === PUESTOS MÉDICOS ===
-            var puestos = new List<PuestoMedico>
-            {
-                new PuestoMedico { },
-                new PuestoMedico { }
-            };
-            context.PuestosMedicos.AddRange(puestos);
-            await context.SaveChangesAsync();
-
-            // === ASIGNACIONES DE DOCTORES A DEPARTAMENTOS ===
-            var asignaciones = new List<Asignacion>
-            {
-                new Asignacion { TrabajadorId = trabajadores[0].IdTrabajador, DepartamentoId = dep1.IdDepartamento, FechaInicio = DateTime.UtcNow.AddMonths(-6) },
-                new Asignacion { TrabajadorId = trabajadores[1].IdTrabajador, DepartamentoId = dep2.IdDepartamento, FechaInicio = DateTime.UtcNow.AddMonths(-3) },
-                new Asignacion { TrabajadorId = trabajadores[4].IdTrabajador, DepartamentoId = dep1.IdDepartamento, FechaInicio = DateTime.UtcNow.AddMonths(-1) }
-            };
-            context.Asignaciones.AddRange(asignaciones);
-
-            // === MEDICAMENTOS ===
+            // 🔹 2. Medicamentos
             var medicamentos = new List<Medicamento>
             {
                 new Medicamento { Nombre = "Paracetamol", Descripcion = "Analgésico y antipirético" },
                 new Medicamento { Nombre = "Amoxicilina", Descripcion = "Antibiótico de amplio espectro" },
-                new Medicamento { Nombre = "Ibuprofeno", Descripcion = "Antiinflamatorio no esteroideo" }
+                new Medicamento { Nombre = "Ibuprofeno", Descripcion = "Antiinflamatorio no esteroideo" },
+                new Medicamento { Nombre = "Omeprazol", Descripcion = "Inhibidor de la bomba de protones" },
+                new Medicamento { Nombre = "Loratadina", Descripcion = "Antihistamínico" }
             };
-            context.Medicamentos.AddRange(medicamentos);
+            await context.Medicamentos.AddRangeAsync(medicamentos);
             await context.SaveChangesAsync();
 
-            // === STOCKS POR DEPARTAMENTO ===
+            // 🔹 3. Trabajadores
+            var trabajadores = new List<Trabajador>
+            {
+                new Trabajador { Nombre = "Dr. Juan Pérez", Cargo = "Médico General" },
+                new Trabajador { Nombre = "Dra. Ana Gómez", Cargo = "Pediatra" },
+                new Trabajador { Nombre = "Dr. Carlos Ruiz", Cargo = "Cardiólogo" },
+                new Trabajador { Nombre = "Lic. María López", Cargo = "Jefa de Almacén" },
+                new Trabajador { Nombre = "Dr. Miguel Torres", Cargo = "Jefe Departamento" }
+            };
+            await context.Trabajadores.AddRangeAsync(trabajadores);
+            await context.SaveChangesAsync();
+
+            // 🔹 4. Departamentos
+            var departamentos = new List<Departamento>
+            {
+                new Departamento { Nombre = "Pediatría", Estado = "Activo", JefeId = 2 },
+                new Departamento { Nombre = "Cardiología", Estado = "Activo", JefeId = 3 },
+                new Departamento { Nombre = "Farmacia", Estado = "Activo", JefeId = 4 }
+            };
+            await context.Departamentos.AddRangeAsync(departamentos);
+            await context.SaveChangesAsync();
+
+            // 🔹 5. Asignaciones
+            var asignaciones = new List<Asignacion>
+            {
+                new Asignacion { TrabajadorId = 1, DepartamentoId = 1, FechaInicio = DateTime.UtcNow.AddMonths(-6) },
+                new Asignacion { TrabajadorId = 2, DepartamentoId = 1, FechaInicio = DateTime.UtcNow.AddMonths(-4) },
+                new Asignacion { TrabajadorId = 3, DepartamentoId = 2, FechaInicio = DateTime.UtcNow.AddMonths(-3) },
+                new Asignacion { TrabajadorId = 5, DepartamentoId = 2, FechaInicio = DateTime.UtcNow.AddMonths(-1) }
+            };
+            await context.Asignaciones.AddRangeAsync(asignaciones);
+            await context.SaveChangesAsync();
+
+            // 🔹 6. Pacientes
+            var pacientes = new List<Paciente>
+            {
+                new Paciente { Nombre = "Luis Fernández", Edad = 35, NumeroIdentidad = "123456789", Direccion = "Av. Siempre Viva 123" },
+                new Paciente { Nombre = "Ana Rodríguez", Edad = 29, NumeroIdentidad = "987654321", Direccion = "Calle Luna 45" },
+                new Paciente { Nombre = "Pedro Sánchez", Edad = 50, NumeroIdentidad = "456789123", Direccion = "Calle Sol 9" }
+            };
+            await context.Pacientes.AddRangeAsync(pacientes);
+            await context.SaveChangesAsync();
+
+            // 🔹 7. Stocks
             var stocks = new List<Stock>
             {
-                new Stock { DepartamentoId = dep1.IdDepartamento },
-                new Stock { DepartamentoId = dep2.IdDepartamento }
+                new Stock { DepartamentoId = 3 },
+                new Stock { DepartamentoId = 1 },
+                new Stock { DepartamentoId = 2 }
             };
-            context.Stocks.AddRange(stocks);
+            await context.Stocks.AddRangeAsync(stocks);
             await context.SaveChangesAsync();
 
-            // === CONSULTAS ===
-            var consulta1 = new Consulta
+            // 🔹 8. StockMedicamentos
+            var stockMedicamentos = new List<StockMedicamento>
             {
-                Tipo = "Programada Externa",
-                PacienteId = pacientes[0].IdPaciente,
-                MedicoPrincipalId = trabajadores[0].IdTrabajador,
-                DepartamentoId = dep1.IdDepartamento,
-                PuestoMedicoId = dep1.IdDepartamento,
-                FechaConsulta = DateTime.UtcNow.AddDays(-1),
-                Diagnostico = "Contusión leve tratada",
-                Estado = "Finalizada",
-                FechaCreacion = DateTime.UtcNow
+                new StockMedicamento { StockId = 1, MedicamentoId = 1, CantidadDisponible = 500 },
+                new StockMedicamento { StockId = 1, MedicamentoId = 2, CantidadDisponible = 300 },
+                new StockMedicamento { StockId = 2, MedicamentoId = 3, CantidadDisponible = 150 },
+                new StockMedicamento { StockId = 3, MedicamentoId = 4, CantidadDisponible = 200 }
             };
-            var consulta2 = new Consulta
-            {
-                Tipo = "Urgencia",
-                PacienteId = pacientes[1].IdPaciente,
-                MedicoPrincipalId = trabajadores[1].IdTrabajador,
-                DepartamentoId = dep2.IdDepartamento,
-                FechaConsulta = DateTime.UtcNow,
-                Estado = "EnCurso",
-                FechaCreacion = DateTime.UtcNow
-            };
-            context.Consultas.AddRange(consulta1, consulta2);
+            await context.StockMedicamentos.AddRangeAsync(stockMedicamentos);
             await context.SaveChangesAsync();
 
-            // === CONSULTA - DOCTORES PARTICIPANTES ===
-            var consultaTrabajadores = new List<ConsultaTrabajador>
+            // 🔹 9. Remisiones
+            var remisiones = new List<Remision>
             {
-                new ConsultaTrabajador { ConsultaId = consulta1.IdConsulta, TrabajadorId = trabajadores[4].IdTrabajador },
-                new ConsultaTrabajador { ConsultaId = consulta2.IdConsulta, TrabajadorId = trabajadores[0].IdTrabajador }
+                new RemisionInterna
+                {
+                    PacienteId = 1,
+                    DepartamentoId = 2,
+                    DepartamentoOrigenId = 1,
+                    FechaConsulta = DateTime.UtcNow.AddDays(-10),
+                    MotivoInterno = "Evaluación cardiológica",
+                    Tipo = "Interna"
+                },
+                new RemisionExterna
+                {
+                    PacienteId = 2,
+                    DepartamentoId = 1,
+                    FechaConsulta = DateTime.UtcNow.AddDays(-5),
+                    MotivoExterno = "Referencia externa pediátrica",
+                    Tipo = "Externa"
+                }
             };
-            context.ConsultaTrabajadores.AddRange(consultaTrabajadores);
+            await context.Remisiones.AddRangeAsync(remisiones);
+            await context.SaveChangesAsync();
 
-            // === SOLICITUD DE MEDICAMENTOS (DEPARTAMENTO -> ALMACÉN) ===
+            // 🔹 10. Consultas
+            var consultas = new List<Consulta>
+            {
+                new ConsultaEmergencia
+                {
+                    PacienteId = 1,
+                    DepartamentoId = 1,
+                    MedicoPrincipalId = 1,
+                    MedicoAtendioId = 2,
+                    FechaConsulta = DateTime.UtcNow.AddDays(-2),
+                    Estado = "Finalizada",
+                    Diagnostico = "Fiebre alta",
+                    Tipo = "Emergencia"
+                },
+                new ConsultaProgramada
+                {
+                    DepartamentoId = 2,
+                    MedicoPrincipalId = 3,
+                    MedicoAtendioId = 5,
+                    RemisionId = 1,
+                    FechaConsulta = DateTime.UtcNow.AddDays(-1),
+                    Estado = "EnCurso",
+                    Diagnostico = "Revisión cardiológica",
+                    Tipo = "Programada"
+                }
+            };
+            await context.Consultas.AddRangeAsync(consultas);
+            await context.SaveChangesAsync();
+
+            // 🔹 11. Solicitudes y Entregas
             var solicitud = new SolicitudMedicamento
             {
-                DepartamentoId = dep1.IdDepartamento,
-                FechaSolicitud = DateTime.UtcNow.AddDays(-2),
-                Estado = "Inactiva"
+                DepartamentoId = 1,
+                FechaSolicitud = DateTime.UtcNow.AddDays(-3),
+                Estado = "Aprobada",
+                JefeDepartamentoId = 5
             };
-            context.SolicitudesMedicamentos.Add(solicitud);
+            await context.SolicitudesMedicamentos.AddAsync(solicitud);
             await context.SaveChangesAsync();
 
-            var solicitudDetalles = new List<SolicitudMedicamentoDetalle>
+            var solicitudDetalle = new SolicitudMedicamentoDetalle
             {
-                new SolicitudMedicamentoDetalle { SolicitudId = solicitud.IdSolicitud, MedicamentoId = medicamentos[0].Id, Cantidad = 10 },
-                new SolicitudMedicamentoDetalle { SolicitudId = solicitud.IdSolicitud, MedicamentoId = medicamentos[1].Id, Cantidad = 5 }
+                SolicitudId = solicitud.IdSolicitud,
+                MedicamentoId = 1,
+                Cantidad = 50
             };
-            context.SolicitudMedicamentoDetalles.AddRange(solicitudDetalles);
+            await context.SolicitudMedicamentoDetalles.AddAsync(solicitudDetalle);
+            await context.SaveChangesAsync();
 
-            // === ENTREGA DE MEDICAMENTOS (ALMACÉN -> DEPARTAMENTO) ===
             var entrega = new EntregaMedicamento
             {
-                DepartamentoDestinoId = dep1.IdDepartamento,
+                DepartamentoDestinoId = 1,
                 FechaEntrega = DateTime.UtcNow.AddDays(-1),
-                Estado = "Inactiva"
+                Estado = "Completada",
+                JefeAlmacenId = 4
             };
-            context.EntregasMedicamentos.Add(entrega);
+            await context.EntregasMedicamentos.AddAsync(entrega);
             await context.SaveChangesAsync();
 
-            var entregaDetalles = new List<EntregaMedicamentoDetalle>
+            var entregaDetalle = new EntregaMedicamentoDetalle
             {
-                new EntregaMedicamentoDetalle { EntregaId = entrega.IdEntrega, MedicamentoId = medicamentos[0].Id, Cantidad = 10 },
-                new EntregaMedicamentoDetalle { EntregaId = entrega.IdEntrega, MedicamentoId = medicamentos[1].Id, Cantidad = 5 }
+                EntregaId = entrega.IdEntrega,
+                MedicamentoId = 1,
+                Cantidad = 50
             };
-            context.EntregaMedicamentoDetalles.AddRange(entregaDetalles);
-
-            // === PEDIDO DE CONSULTA A ENFERMERÍA ===
-            var pedido = new PedidoMedicamento
-            {
-                ConsultaId = consulta1.IdConsulta,
-                FechaPedido = DateTime.UtcNow,
-                Estado = "Inactiva"
-            };
-            context.PedidosMedicamentos.Add(pedido);
+            await context.EntregaMedicamentoDetalles.AddAsync(entregaDetalle);
             await context.SaveChangesAsync();
 
-            var pedidoDetalles = new List<PedidoMedicamentoDetalle>
+            // 🔹 12. Pedidos de consulta
+            var pedido = new PedidoConsulta
             {
-                new PedidoMedicamentoDetalle { PedidoId = pedido.IdPedido, MedicamentoId = medicamentos[2].Id, Cantidad = 2 }
+                ConsultaId = 1,
+                DepartamentoId = 3,
+                FechaPedido = DateTime.UtcNow
             };
-            context.PedidoMedicamentoDetalles.AddRange(pedidoDetalles);
-
-            // === ENTREGA DE ENFERMERÍA A CONSULTA ===
-            var entregaConsulta = new EntregaAConsulta
-            {
-                ConsultaId = consulta1.IdConsulta,
-                FechaEntrega = DateTime.UtcNow,
-                Estado = "Activa"
-            };
-            context.EntregasAConsulta.Add(entregaConsulta);
+            await context.PedidosConsulta.AddAsync(pedido);
             await context.SaveChangesAsync();
 
-            var entregaConsultaDetalles = new List<EntregaAConsultaDetalle>
+            var pedidoDetalle = new PedidoConsultaDetalle
             {
-                new EntregaAConsultaDetalle { EntregaConsultaId = entregaConsulta.IdEntregaConsulta, MedicamentoId = medicamentos[2].Id, Cantidad = 2 }
+                PedidoId = pedido.IdPedido,
+                MedicamentoId = 2,
+                Cantidad = 20
             };
-            context.EntregaAConsultaDetalles.AddRange(entregaConsultaDetalles);
-
+            await context.PedidoConsultaDetalles.AddAsync(pedidoDetalle);
             await context.SaveChangesAsync();
         }
     }

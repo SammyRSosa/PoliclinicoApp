@@ -27,7 +27,5 @@ namespace Policlínico.Domain.Entities
 
         // Relaciones
         public ICollection<Asignacion>? Asignaciones { get; set; }
-        public ICollection<ConsultaTrabajador>? AsignacionesConsulta { get; set; }
-
     }
 }

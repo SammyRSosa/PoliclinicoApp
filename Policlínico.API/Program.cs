@@ -5,6 +5,7 @@ using Policlínico.API.Profiles;
 using Policlínico.Infrastructure.Data;
 using Policlínico.Application.Interfaces;
 using Policlínico.Infrastructure.Services;
+using Policlínico.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,14 +26,17 @@ builder.Services.AddControllers()
 
 builder.Services.AddScoped<ISolicitudMedicamentoService, SolicitudMedicamentoService>();
 builder.Services.AddScoped<IEntregaMedicamentoService, EntregaMedicamentoService>();
-builder.Services.AddScoped<IPedidoMedicamentoService, PedidoMedicamentoService>();
-builder.Services.AddScoped<IEntregaConsultaService, EntregaAConsultaService>();
-
+builder.Services.AddScoped<IPedidoConsultaService, PedidoConsultaService>();
 
 // 🔹 Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Registrar el servicio de historia clínica
+builder.Services.AddScoped<IHistoriaClinicaService, HistoriaClinicaService>();
+
+
+// builder.Services.AddScoped<IHistoriaClinicaService, HistoriaClinicaService>();
 // 🔹 AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -45,15 +49,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
+
 
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<PoliclínicoDbContext>();
-    await PoliclinicoDbContextSeed.SeedAsync(context);
+     await DbContextSeed.SeedAsync(context);
 }
 
 app.Run();
