@@ -26,6 +26,9 @@ builder.Services.AddControllers()
 
 builder.Services.AddScoped<ISolicitudMedicamentoService, SolicitudMedicamentoService>();
 builder.Services.AddScoped<IEntregaMedicamentoService, EntregaMedicamentoService>();
+builder.Services.AddScoped<IPedidoMedicamentoService, PedidoMedicamentoService>();
+
+
 builder.Services.AddScoped<IPedidoConsultaService, PedidoConsultaService>();
 
 // 🔹 Swagger

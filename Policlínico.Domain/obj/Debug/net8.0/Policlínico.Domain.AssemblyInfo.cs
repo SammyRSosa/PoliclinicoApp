@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Policlínico.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+98f3fbfd01f89c05cc9ff417c18a79cb1aa6a993")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+24c7c842ba60c78561849035b1828392e12e84b3")]
 [assembly: System.Reflection.AssemblyProductAttribute("Policlínico.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Policlínico.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
